@@ -1,0 +1,444 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Visualizations of the performance of the KeyFob system verses KPIs",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 2,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "demsxwply5ukgc"
+      },
+      "description": "Assigned Keyfobs denied access to Tennis Court or Pool during open periods.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "#EAB839",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "demsxwply5ukgc"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "with forbids as\n(\n\tselect distinct fob_id, door,  EXTRACT(week from vk.swipe_time) as week_value, EXTRACT(year from vk.swipe_time) as year_value\n\tfrom door_controller.v_keyswipes vk\n\twhere vk.status = 'Forbid'\n\tand EXTRACT(hour from vk.swipe_time)>6 and EXTRACT(hour from vk.swipe_time) <22\n)\nselect count(*), TO_DATE(year_value::text || week_value::text, 'IYYYIW')\n--from door_controller.v_keyswipes vk\nfrom forbids f\ninner join key_fobs.keyfobs k on\nk.fob_id = f.fob_id\ninner join door_controller.door d\non d.door_no = f.door\nwhere d.door_desc not like '%Club%'\nand f.fob_id in (select fob_id from key_fobs.v_2025_homeowner_fob_list)\ngroup by week_value, year_value\norder by year_value desc, week_value desc;",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Valid Forbids - Historical",
+      "transparent": true,
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "demsxwply5ukgc"
+      },
+      "description": "Number of Assigned KeyFobs that were forbid access to Tennis Courts or Pool in the current week.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "index": 0,
+                  "text": "None"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "#EAB839",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH forbids AS (\n    SELECT DISTINCT\n        fob_id,\n        door,\n        EXTRACT(week FROM vk.swipe_time) AS week_value,\n        EXTRACT(year FROM vk.swipe_time) AS year_value\n    FROM\n        door_controller.v_keyswipes vk\n    WHERE\n        vk.status = 'Forbid'\n        AND EXTRACT(hour FROM vk.swipe_time) > 6\n        AND EXTRACT(hour FROM vk.swipe_time) < 22\n),\ncurrent_forbids_summary AS (\n    SELECT\n        COALESCE(COUNT(*), 0) AS forbid_count,\n        TO_DATE(year_value::text || LPAD(week_value::text, 2, '0'), 'IYYYIW') AS the_date\n    FROM\n        forbids f\n    INNER JOIN\n        key_fobs.keyfobs k ON k.fob_id = f.fob_id\n    INNER JOIN\n        door_controller.door d ON d.door_no = f.door\n    WHERE\n        d.door_desc NOT LIKE '%Club%'\n        AND f.fob_id IN (SELECT fob_id FROM key_fobs.v_2025_homeowner_fob_list)\n    GROUP BY\n        week_value,\n        year_value\n),\nthis_week_calc AS (\n    -- Calculate the current week's Monday date based on ISO week\n    SELECT\n        TO_DATE(EXTRACT(year FROM CURRENT_DATE)::text || LPAD(EXTRACT(week FROM CURRENT_DATE)::text, 2, '0'), 'IYYYIW') AS current_week_monday\n)\nSELECT\n    COALESCE(cfs.forbid_count, 0) AS final_forbid_count\nFROM\n    this_week_calc twc\nLEFT JOIN\n    current_forbids_summary cfs ON twc.current_week_monday = cfs.the_date;\n",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Current Week Forbids",
+      "transparent": true,
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "demsxwply5ukgc"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "with forbids as\n(\n\tselect distinct fob_id, door,  EXTRACT(week from vk.swipe_time) as week_value, EXTRACT(year from vk.swipe_time) as year_value\n\tfrom door_controller.v_keyswipes vk\n\twhere vk.status = 'Allow'\n\tand EXTRACT(hour from vk.swipe_time)>6 and EXTRACT(hour from vk.swipe_time) <22\n)\nselect count(*), TO_DATE(year_value::text || week_value::text, 'IYYYIW')\n--from door_controller.v_keyswipes vk\nfrom forbids f\ninner join key_fobs.keyfobs k on\nk.fob_id = f.fob_id\ninner join door_controller.door d\non d.door_no = f.door\nwhere d.door_desc not like '%Club%'\nand f.fob_id not in (select fob_id from key_fobs.v_2025_homeowner_fob_list)\ngroup by week_value, year_value\norder by year_value desc, week_value desc;",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Historical Unauthorized Accesses",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "demsxwply5ukgc"
+      },
+      "description": "Count of Unassigned KeyfobID being used to access Pool or Tennis courts during operating hours during the current week.",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "WITH forbids AS (\n    SELECT DISTINCT\n        fob_id,\n        door,\n        EXTRACT(week FROM vk.swipe_time) AS week_value,\n        EXTRACT(year FROM vk.swipe_time) AS year_value\n    FROM\n        door_controller.v_keyswipes vk\n    WHERE\n        vk.status = 'Allow'\n        AND EXTRACT(hour FROM vk.swipe_time) > 6\n        AND EXTRACT(hour FROM vk.swipe_time) < 22\n),\ncurrent_forbids_summary AS (\n    SELECT\n        COALESCE(COUNT(*), 0) AS forbid_count,\n        TO_DATE(year_value::text || LPAD(week_value::text, 2, '0'), 'IYYYIW') AS the_date\n    FROM\n        forbids f\n    INNER JOIN\n        key_fobs.keyfobs k ON k.fob_id = f.fob_id\n    INNER JOIN\n        door_controller.door d ON d.door_no = f.door\n    WHERE\n        d.door_desc NOT LIKE '%Club%'\n        AND f.fob_id NOT IN (SELECT fob_id FROM key_fobs.v_2025_homeowner_fob_list)\n    GROUP BY\n        week_value,\n        year_value\n),\nthis_week_calc AS (\n    -- Calculate the current week's Monday date based on ISO week\n    SELECT\n        TO_DATE(EXTRACT(year FROM CURRENT_DATE)::text || LPAD(EXTRACT(week FROM CURRENT_DATE)::text, 2, '0'), 'IYYYIW') AS current_week_monday\n)\nSELECT\n    COALESCE(cfs.forbid_count, 0) AS final_forbid_count\nFROM\n    this_week_calc twc\nLEFT JOIN\n    current_forbids_summary cfs ON twc.current_week_monday = cfs.the_date;\n",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          }
+        }
+      ],
+      "title": "Unauthroized Access - Current Week",
+      "transparent": true,
+      "type": "gauge"
+    }
+  ],
+  "preload": false,
+  "schemaVersion": 41,
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "2020-12-07T00:00:00.000Z",
+    "to": "2025-05-26T00:00:00.000Z"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "KeyFob System Performance Metrics",
+  "uid": "28c80bd2-34ad-45b3-a198-a9e304871821",
+  "version": 13
+}
